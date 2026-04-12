@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "idor-testing": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "6f100962f5a7f5ffe94ee2c63ca66bbd0618cbe3d56439033f5b70613c15be04"
+    },
+    "owasp-security": {
+      "source": "agamm/claude-code-owasp",
+      "sourceType": "github",
+      "computedHash": "14e6a17cfabd3c1666105b6b5ea986db39bed450623aa22179690348b586bcf6"
+    },
+    "security-review": {
+      "source": "getsentry/skills",
+      "sourceType": "github",
+      "computedHash": "ec9792f5fd065e020c48ab5a57707c83435c286c449ba98dfa726d7b1842c868"
+    },
+    "shannon": {
+      "source": "unicodeveloper/shannon",
+      "sourceType": "github",
+      "computedHash": "5dbcc124e13135a2d8feabdb0149c130f46440a0685c24ab17bf01fb6ab60770"
+    }
+  }
+}

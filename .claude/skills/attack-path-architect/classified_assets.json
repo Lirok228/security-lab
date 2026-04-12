@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "timestamp": "2026-04-12T14:25:32.657404Z",
+    "type": "asset_classification",
+    "tool": "attack-path-architect by orizon.one",
+    "total_assets": 0
+  },
+  "summary": {
+    "by_type": {},
+    "by_exposure": {},
+    "high_risk": 0,
+    "medium_risk": 0,
+    "low_risk": 0
+  },
+  "assets": []
+}

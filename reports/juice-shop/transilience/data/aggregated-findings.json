@@ -1,0 +1,79 @@
+{
+  "engagement": "OWASP Juice Shop — Penetration Test",
+  "target": "http://localhost:3000",
+  "agent": "transilience",
+  "date": "2026-04-12",
+  "methodology": "PTES + OWASP WSTG",
+  "executors_deployed": 4,
+  "findings_total": 4,
+  "findings_validated": 3,
+  "findings_rejected": 1,
+  "false_positives": ["F-003 — bulk timestamp in verify phase + 22 vs 21 account count discrepancy"],
+  "validated_findings": [
+    {
+      "id": "F-001",
+      "title": "Unauthenticated UNION-based SQL Injection in Product Search",
+      "endpoint": "GET /rest/products/search?q=",
+      "severity": "CRITICAL",
+      "cvss": "9.8",
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "cwe": "CWE-89",
+      "owasp": "A03:2021 Injection",
+      "auth_required": false,
+      "impact": "Full DB dump: 22 users with email+MD5 hashes, SQLite schema (21 tables), admin credentials",
+      "key_payload": "')) UNION SELECT email||':'||password,2,3,4,5,6,7,8,9 FROM Users--",
+      "poc": "findings/F-001/poc.py"
+    },
+    {
+      "id": "F-002",
+      "title": "Stored XSS in Product Reviews (9 payloads confirmed)",
+      "endpoint": "PUT /rest/products/{id}/reviews",
+      "severity": "HIGH",
+      "cvss": "7.4",
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:L/A:N",
+      "cwe": "CWE-79",
+      "owasp": "A03:2021 Injection",
+      "auth_required": true,
+      "impact": "Session hijacking, CSRF, data exfiltration — affects all users viewing contaminated products",
+      "key_payload": "<script>alert(document.cookie)</script>",
+      "poc": "findings/F-002/poc.py"
+    },
+    {
+      "id": "F-004",
+      "title": "Broken Access Control — 4 sub-findings (IDOR, Unauthenticated Credential Leak, Privilege Escalation, Info Disclosure)",
+      "endpoint": "GET /rest/memories, GET /api/Users/{id}, GET /rest/user/authentication-details/, GET /api/Challenges/",
+      "severity": "CRITICAL",
+      "cvss": "9.1",
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "cwe": "CWE-284",
+      "owasp": "A01:2021 Broken Access Control",
+      "auth_required": false,
+      "sub_findings": [
+        {"id": "F-004-A", "title": "IDOR — read any user profile", "severity": "HIGH", "cvss": 7.5},
+        {"id": "F-004-B", "title": "Unauthenticated MD5 hash leak via /rest/memories", "severity": "CRITICAL", "cvss": 9.1},
+        {"id": "F-004-C", "title": "Vertical privilege escalation — any user reads full user list", "severity": "HIGH", "cvss": 8.1},
+        {"id": "F-004-D", "title": "Full challenge catalog exposed (info disclosure)", "severity": "MEDIUM", "cvss": 5.3}
+      ],
+      "impact": "Admin password hashes exposed unauthenticated; full user enumeration; IDOR on user profiles",
+      "poc": "findings/F-004/poc.py"
+    }
+  ],
+  "exploit_chains": [
+    {
+      "chain": "F-001 → F-004-B → Account Takeover",
+      "description": "SQLi extracts email list → /rest/memories leaks MD5 hashes → crack MD5 → full account takeover"
+    },
+    {
+      "chain": "F-001 → F-002 → Worm",
+      "description": "SQLi bypasses auth → injects XSS into reviews → stored payload runs on all visitors"
+    }
+  ],
+  "rejected_findings": [
+    {
+      "id": "F-003",
+      "title": "JWT Algorithm Confusion (alg:none)",
+      "reason": "FAILED validation: (1) claim '22 accounts' contradicted by raw evidence (21 actual), (2) verify-phase bulk timestamps",
+      "note": "Vulnerability likely real but finding not admissible per validation rules. Recommend re-test with clean executor."
+    }
+  ]
+}

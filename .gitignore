@@ -1,0 +1,34 @@
+# Временные outputs скиллов
+.claude/skills/*/outputs/*
+!.claude/skills/*/outputs/.gitkeep
+.claude/skills/*/crawl_*.json
+.claude/skills/*/port_scan_*.json
+
+# Сканы и raw данные
+scans/
+/tmp/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
+
+# Конфиги с секретами
+configs/*.yaml
+configs/*.env
+*.env
+
+# Большие файлы рекона (оставляем только финальные отчёты)
+.claude/skills/recon-dominator/output/
+.claude/skills/webapp-exploit-hunter/output/
+.claude/skills/api-breaker/output/
+static/juice-shop/.git
+static/medclinic/.git
+static/vampi/.git
+static/vuln-bank/.git
+
+# Клонированные исходники (клонировать вручную через install.sh)
+static/

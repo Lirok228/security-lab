@@ -1,0 +1,638 @@
+{
+  "meta": {
+    "timestamp": "2026-04-12T14:27:36.614031Z",
+    "type": "attack_tree",
+    "tool": "attack-path-architect by orizon.one",
+    "total_paths": 10,
+    "total_chains": 0
+  },
+  "attack_paths": [
+    {
+      "target": "localhost:5050",
+      "asset_type": "WEB_APP",
+      "attack_name": "SQL Injection to RCE",
+      "feasibility": 8,
+      "impact": 9,
+      "stealth": 7,
+      "combined_score": 8.2,
+      "condition_matched": false,
+      "matched_technologies": [],
+      "steps": [
+        {
+          "action": "Identify injectable parameters via fuzzing",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "sqlmap",
+            "Burp Suite"
+          ]
+        },
+        {
+          "action": "Exploit SQL injection for data extraction",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "sqlmap"
+          ]
+        },
+        {
+          "action": "Escalate to OS command execution (xp_cmdshell, LOAD_FILE, INTO OUTFILE)",
+          "ttp_id": "T1059",
+          "ttp_name": "Command and Scripting Interpreter",
+          "tactic": "Execution",
+          "tools": [
+            "sqlmap --os-shell"
+          ]
+        },
+        {
+          "action": "Establish reverse shell",
+          "ttp_id": "T1059.004",
+          "ttp_name": "Unix Shell",
+          "tactic": "Execution",
+          "tools": [
+            "netcat",
+            "bash"
+          ]
+        }
+      ],
+      "mitre_tactics": [
+        "Initial Access",
+        "Execution"
+      ]
+    },
+    {
+      "target": "localhost:5050/graphql",
+      "asset_type": "API",
+      "attack_name": "BOLA/IDOR to Data Exfiltration",
+      "feasibility": 9,
+      "impact": 8,
+      "stealth": 7,
+      "combined_score": 8.2,
+      "condition_matched": true,
+      "matched_technologies": [],
+      "steps": [
+        {
+          "action": "Map API endpoints and identify object references",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "Burp Suite",
+            "Postman"
+          ]
+        },
+        {
+          "action": "Test horizontal privilege escalation (access other users' objects)",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "Burp Intruder"
+          ]
+        },
+        {
+          "action": "Enumerate and exfiltrate accessible data",
+          "ttp_id": "T1213",
+          "ttp_name": "Data from Information Repositories",
+          "tactic": "Collection",
+          "tools": [
+            "custom script"
+          ]
+        }
+      ],
+      "mitre_tactics": [
+        "Initial Access",
+        "Collection"
+      ]
+    },
+    {
+      "target": "localhost:5050/graphql",
+      "asset_type": "API",
+      "attack_name": "GraphQL Introspection to Full Schema Leak",
+      "feasibility": 10,
+      "impact": 7,
+      "stealth": 7,
+      "combined_score": 8.2,
+      "condition_matched": true,
+      "matched_technologies": [
+        "GraphQL"
+      ],
+      "steps": [
+        {
+          "action": "Send introspection query to GraphQL endpoint",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "GraphQL Voyager",
+            "Insomnia"
+          ]
+        },
+        {
+          "action": "Map all queries, mutations, and types",
+          "ttp_id": "T1213",
+          "ttp_name": "Data from Information Repositories",
+          "tactic": "Collection",
+          "tools": [
+            "GraphQL Voyager"
+          ]
+        },
+        {
+          "action": "Identify sensitive mutations (admin operations, data deletion)",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "Burp Suite"
+          ]
+        },
+        {
+          "action": "Test authorization on privileged mutations",
+          "ttp_id": "T1548",
+          "ttp_name": "Abuse Elevation Control Mechanism",
+          "tactic": "Privilege Escalation",
+          "tools": [
+            "Burp Suite"
+          ]
+        }
+      ],
+      "mitre_tactics": [
+        "Initial Access",
+        "Collection",
+        "Privilege Escalation"
+      ]
+    },
+    {
+      "target": "localhost:5000",
+      "asset_type": "API",
+      "attack_name": "BOLA/IDOR to Data Exfiltration",
+      "feasibility": 9,
+      "impact": 8,
+      "stealth": 7,
+      "combined_score": 8.2,
+      "condition_matched": true,
+      "matched_technologies": [],
+      "steps": [
+        {
+          "action": "Map API endpoints and identify object references",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "Burp Suite",
+            "Postman"
+          ]
+        },
+        {
+          "action": "Test horizontal privilege escalation (access other users' objects)",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "Burp Intruder"
+          ]
+        },
+        {
+          "action": "Enumerate and exfiltrate accessible data",
+          "ttp_id": "T1213",
+          "ttp_name": "Data from Information Repositories",
+          "tactic": "Collection",
+          "tools": [
+            "custom script"
+          ]
+        }
+      ],
+      "mitre_tactics": [
+        "Initial Access",
+        "Collection"
+      ]
+    },
+    {
+      "target": "localhost:5000",
+      "asset_type": "API",
+      "attack_name": "GraphQL Introspection to Full Schema Leak",
+      "feasibility": 10,
+      "impact": 7,
+      "stealth": 7,
+      "combined_score": 8.2,
+      "condition_matched": false,
+      "matched_technologies": [],
+      "steps": [
+        {
+          "action": "Send introspection query to GraphQL endpoint",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "GraphQL Voyager",
+            "Insomnia"
+          ]
+        },
+        {
+          "action": "Map all queries, mutations, and types",
+          "ttp_id": "T1213",
+          "ttp_name": "Data from Information Repositories",
+          "tactic": "Collection",
+          "tools": [
+            "GraphQL Voyager"
+          ]
+        },
+        {
+          "action": "Identify sensitive mutations (admin operations, data deletion)",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "Burp Suite"
+          ]
+        },
+        {
+          "action": "Test authorization on privileged mutations",
+          "ttp_id": "T1548",
+          "ttp_name": "Abuse Elevation Control Mechanism",
+          "tactic": "Privilege Escalation",
+          "tools": [
+            "Burp Suite"
+          ]
+        }
+      ],
+      "mitre_tactics": [
+        "Initial Access",
+        "Collection",
+        "Privilege Escalation"
+      ]
+    },
+    {
+      "target": "localhost:5432",
+      "asset_type": "DATABASE",
+      "attack_name": "Direct Database Access via Exposed Port",
+      "feasibility": 7,
+      "impact": 10,
+      "stealth": 7,
+      "combined_score": 8.2,
+      "condition_matched": true,
+      "matched_technologies": [],
+      "steps": [
+        {
+          "action": "Connect to exposed database port",
+          "ttp_id": "T1133",
+          "ttp_name": "External Remote Services",
+          "tactic": "Initial Access",
+          "tools": [
+            "mysql",
+            "psql",
+            "mongo"
+          ]
+        },
+        {
+          "action": "Test default/empty credentials",
+          "ttp_id": "T1110",
+          "ttp_name": "Brute Force",
+          "tactic": "Credential Access",
+          "tools": [
+            "hydra",
+            "medusa"
+          ]
+        },
+        {
+          "action": "Enumerate databases and tables",
+          "ttp_id": "T1213",
+          "ttp_name": "Data from Information Repositories",
+          "tactic": "Collection",
+          "tools": [
+            "native client"
+          ]
+        },
+        {
+          "action": "Exfiltrate sensitive data",
+          "ttp_id": "T1048",
+          "ttp_name": "Exfiltration Over Alternative Protocol",
+          "tactic": "Exfiltration",
+          "tools": [
+            "native client"
+          ]
+        }
+      ],
+      "mitre_tactics": [
+        "Initial Access",
+        "Credential Access",
+        "Collection",
+        "Exfiltration"
+      ]
+    },
+    {
+      "target": "localhost:5050/sup3r_s3cr3t_admin",
+      "asset_type": "ADMIN_PANEL",
+      "attack_name": "Default/Weak Credentials on Admin Panel",
+      "feasibility": 8,
+      "impact": 9,
+      "stealth": 7,
+      "combined_score": 8.2,
+      "condition_matched": true,
+      "matched_technologies": [],
+      "steps": [
+        {
+          "action": "Identify admin panel technology",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "browser"
+          ]
+        },
+        {
+          "action": "Test default credentials for the platform",
+          "ttp_id": "T1110",
+          "ttp_name": "Brute Force",
+          "tactic": "Credential Access",
+          "tools": [
+            "hydra",
+            "custom wordlist"
+          ]
+        },
+        {
+          "action": "Access admin functionality",
+          "ttp_id": "T1078",
+          "ttp_name": "Valid Accounts",
+          "tactic": "Initial Access",
+          "tools": [
+            "browser"
+          ]
+        },
+        {
+          "action": "Leverage admin access for RCE (file upload, plugin install, template edit)",
+          "ttp_id": "T1059",
+          "ttp_name": "Command and Scripting Interpreter",
+          "tactic": "Execution",
+          "tools": [
+            "platform-specific"
+          ]
+        }
+      ],
+      "mitre_tactics": [
+        "Initial Access",
+        "Credential Access",
+        "Execution"
+      ]
+    },
+    {
+      "target": "localhost:5050",
+      "asset_type": "WEB_APP",
+      "attack_name": "SSRF to Cloud Credential Theft",
+      "feasibility": 7,
+      "impact": 9,
+      "stealth": 7,
+      "combined_score": 7.8,
+      "condition_matched": true,
+      "matched_technologies": [],
+      "steps": [
+        {
+          "action": "Identify SSRF vectors (URL parameters, PDF generators, webhooks)",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "Burp Suite"
+          ]
+        },
+        {
+          "action": "Access cloud metadata endpoint (169.254.169.254)",
+          "ttp_id": "T1552.005",
+          "ttp_name": "Cloud Instance Metadata API",
+          "tactic": "Credential Access",
+          "tools": [
+            "curl"
+          ]
+        },
+        {
+          "action": "Extract IAM role credentials from metadata",
+          "ttp_id": "T1552",
+          "ttp_name": "Unsecured Credentials",
+          "tactic": "Credential Access",
+          "tools": [
+            "curl",
+            "aws-cli"
+          ]
+        },
+        {
+          "action": "Use stolen credentials to access cloud resources",
+          "ttp_id": "T1078.004",
+          "ttp_name": "Cloud Accounts",
+          "tactic": "Initial Access",
+          "tools": [
+            "aws-cli",
+            "gcloud"
+          ]
+        }
+      ],
+      "mitre_tactics": [
+        "Initial Access",
+        "Credential Access"
+      ]
+    },
+    {
+      "target": "localhost:5050",
+      "asset_type": "WEB_APP",
+      "attack_name": "XSS to Session Hijacking",
+      "feasibility": 9,
+      "impact": 6,
+      "stealth": 7,
+      "combined_score": 7.4,
+      "condition_matched": true,
+      "matched_technologies": [],
+      "steps": [
+        {
+          "action": "Find reflected/stored XSS in user input fields",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "Burp Suite",
+            "XSStrike"
+          ]
+        },
+        {
+          "action": "Craft payload to steal session cookies",
+          "ttp_id": "T1539",
+          "ttp_name": "Steal Web Session Cookie",
+          "tactic": "Credential Access",
+          "tools": [
+            "custom JS payload"
+          ]
+        },
+        {
+          "action": "Use stolen session on target application",
+          "ttp_id": "T1550",
+          "ttp_name": "Use Alternate Authentication Material",
+          "tactic": "Lateral Movement",
+          "tools": [
+            "browser"
+          ]
+        }
+      ],
+      "mitre_tactics": [
+        "Initial Access",
+        "Credential Access",
+        "Lateral Movement"
+      ]
+    },
+    {
+      "target": "localhost:5050",
+      "asset_type": "WEB_APP",
+      "attack_name": "Authentication Bypass via JWT Manipulation",
+      "feasibility": 6,
+      "impact": 8,
+      "stealth": 7,
+      "combined_score": 7.0,
+      "condition_matched": false,
+      "matched_technologies": [],
+      "steps": [
+        {
+          "action": "Intercept JWT token from authentication flow",
+          "ttp_id": "T1552",
+          "ttp_name": "Unsecured Credentials",
+          "tactic": "Credential Access",
+          "tools": [
+            "Burp Suite"
+          ]
+        },
+        {
+          "action": "Test none algorithm bypass",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "jwt_tool"
+          ]
+        },
+        {
+          "action": "Test key confusion (RS256->HS256)",
+          "ttp_id": "T1190",
+          "ttp_name": "Exploit Public-Facing Application",
+          "tactic": "Initial Access",
+          "tools": [
+            "jwt_tool"
+          ]
+        },
+        {
+          "action": "Brute-force weak JWT secret",
+          "ttp_id": "T1110",
+          "ttp_name": "Brute Force",
+          "tactic": "Credential Access",
+          "tools": [
+            "jwt_tool",
+            "hashcat"
+          ]
+        },
+        {
+          "action": "Forge admin JWT token",
+          "ttp_id": "T1078",
+          "ttp_name": "Valid Accounts",
+          "tactic": "Initial Access",
+          "tools": [
+            "jwt_tool"
+          ]
+        }
+      ],
+      "mitre_tactics": [
+        "Credential Access",
+        "Initial Access"
+      ]
+    }
+  ],
+  "chain_opportunities": [],
+  "mitre_coverage": {
+    "Initial Access": [
+      "T1078",
+      "T1078.004",
+      "T1133",
+      "T1190"
+    ],
+    "Execution": [
+      "T1059",
+      "T1059.004"
+    ],
+    "Collection": [
+      "T1213"
+    ],
+    "Privilege Escalation": [
+      "T1548"
+    ],
+    "Credential Access": [
+      "T1110",
+      "T1539",
+      "T1552",
+      "T1552.005"
+    ],
+    "Exfiltration": [
+      "T1048"
+    ],
+    "Lateral Movement": [
+      "T1550"
+    ]
+  },
+  "recommended_testing_order": [
+    {
+      "rank": 1,
+      "target": "localhost:5050",
+      "attack": "SQL Injection to RCE",
+      "score": 8.2
+    },
+    {
+      "rank": 2,
+      "target": "localhost:5050/graphql",
+      "attack": "BOLA/IDOR to Data Exfiltration",
+      "score": 8.2
+    },
+    {
+      "rank": 3,
+      "target": "localhost:5050/graphql",
+      "attack": "GraphQL Introspection to Full Schema Leak",
+      "score": 8.2
+    },
+    {
+      "rank": 4,
+      "target": "localhost:5000",
+      "attack": "BOLA/IDOR to Data Exfiltration",
+      "score": 8.2
+    },
+    {
+      "rank": 5,
+      "target": "localhost:5000",
+      "attack": "GraphQL Introspection to Full Schema Leak",
+      "score": 8.2
+    },
+    {
+      "rank": 6,
+      "target": "localhost:5432",
+      "attack": "Direct Database Access via Exposed Port",
+      "score": 8.2
+    },
+    {
+      "rank": 7,
+      "target": "localhost:5050/sup3r_s3cr3t_admin",
+      "attack": "Default/Weak Credentials on Admin Panel",
+      "score": 8.2
+    },
+    {
+      "rank": 8,
+      "target": "localhost:5050",
+      "attack": "SSRF to Cloud Credential Theft",
+      "score": 7.8
+    },
+    {
+      "rank": 9,
+      "target": "localhost:5050",
+      "attack": "XSS to Session Hijacking",
+      "score": 7.4
+    },
+    {
+      "rank": 10,
+      "target": "localhost:5050",
+      "attack": "Authentication Bypass via JWT Manipulation",
+      "score": 7.0
+    }
+  ]
+}

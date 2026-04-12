@@ -1,0 +1,11 @@
+{"ts":"2026-04-12T09:46:19Z","action":"start","phase":"recon","detail":"Starting JWT vulnerability testing on Juice Shop"}
+{"ts":"2026-04-12T09:46:24Z","action":"probe","phase":"recon","payload":"SQLi bypass login","endpoint":"/rest/user/login","detail":"Attempting SQLi authentication bypass"}
+{"ts":"2026-04-12T09:46:41Z","action":"probe","phase":"experiment","payload":"alg:none forged token","endpoint":"/rest/user/whoami","detail":"Testing algorithm confusion attack"}
+{"ts":"2026-04-12T09:47:44Z","action":"finding","phase":"experiment","type":"jwt_alg_none","endpoint":"/api/Users/","param":"Authorization","severity":"CRITICAL","detail":"HTTP 200 with alg:none token - server accepts unsigned JWT"}
+{"ts":"2026-04-12T09:48:12Z","action":"probe","phase":"experiment","payload":"weak secret bruteforce","endpoint":"/rest/user/login","detail":"Testing common JWT HS256 secrets"}
+{"ts":"2026-04-12T09:48:20Z","action":"probe","phase":"test","payload":"password reset weak security","endpoint":"/rest/user/reset-password","detail":"Testing weak security question reset"}
+{"ts":"2026-04-12T09:48:32Z","action":"probe","phase":"verify","detail":"Confirming alg:none attack - run 1/3"}
+{"ts":"2026-04-12T09:48:32Z","action":"probe","phase":"verify","detail":"Confirming alg:none attack - run 2/3"}
+{"ts":"2026-04-12T09:48:32Z","action":"probe","phase":"verify","detail":"Confirming alg:none attack - run 3/3"}
+{"ts":"2026-04-12T09:48:50Z","action":"finding","phase":"verify","type":"jwt_alg_none_confirmed","severity":"CRITICAL","detail":"alg:none attack confirmed 3/3 times. /api/Users/ 200, /api/Feedbacks/ 200, /api/Complaints/ 200, /rest/admin/application-version 200"}
+{"ts":"2026-04-12T09:51:34Z","action":"complete","phase":"verify","type":"jwt_alg_none","severity":"CRITICAL","detail":"F-003 confirmed. alg:none bypass. 21 users exfiltrated. 4 admin endpoints accessible. PoC written and executed successfully."}

@@ -1,0 +1,22 @@
+services:
+  juice-shop:
+    image: bkimminich/juice-shop:latest
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - seclab
+    restart: unless-stopped
+
+  vampi:
+    image: erev0s/vampi:latest
+    ports:
+      - "127.0.0.1:5001:5000"
+    environment:
+      - vulnerable=1
+    networks:
+      - seclab
+    restart: unless-stopped
+
+networks:
+  seclab:
+    driver: bridge

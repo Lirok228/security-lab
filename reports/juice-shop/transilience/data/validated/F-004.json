@@ -1,0 +1,26 @@
+{
+  "finding_id": "F-004",
+  "valid": true,
+  "checks": {
+    "cvss_consistency": {
+      "passed": true,
+      "detail": "Severity 'CRITICAL' matches CVSS 3.1 score 9.1 (valid CRITICAL range: 9.0-10.0)"
+    },
+    "evidence_exists": {
+      "passed": true,
+      "detail": "All required files present: description.md, poc.py, poc_output.txt, evidence/raw-source.txt"
+    },
+    "poc_validation": {
+      "passed": true,
+      "detail": "Valid Python syntax confirmed via ast.parse. TARGET = 'http://localhost:3000' explicitly declared at line 19. PoC covers all 4 sub-findings (F-004-A through F-004-D) using read-only HTTP GET requests and a login POST — no destructive operations. poc_output.txt shows all 4 sub-findings returning VULNERABLE with HTTP 200, consistent with script logic."
+    },
+    "claims_vs_raw": {
+      "passed": true,
+      "detail": "All 8 key claims corroborated in evidence/raw-source.txt: (1) admin@juice-sh.op role=admin at /api/Users/1 (line 22, 25); (2) bender@juice-sh.op id=3 as attacker (line 27); (3) bjoern@owasp.org MD5 hash 9283f1b2e9669749081963be0462e466 role=deluxe (lines 51-55); (4) bjoern.kimminich@gmail.com MD5 hash 6edd9d726cbdc873c539e41ae8757b8c role=admin (lines 61-63); (5) deluxeToken efe2f... for bjoern@owasp.org (line 54); (6) 10 memories returned from /rest/memories (line 46); (7) 21 users returned from /rest/user/authentication-details/ (line 84); (8) 111 challenges from /api/Challenges/ (line 130)"
+    },
+    "log_corroboration": {
+      "passed": true,
+      "detail": "All 4 workflow phases present in executor-E04.log with distinct timestamps: recon at 00:00:01Z, experiment at 00:00:05Z (+4s), test at 00:00:15Z (+10s), verify at 00:00:25Z (+10s). Four verify actions at 00:00:26Z, 00:00:28Z, 00:00:30Z, 00:00:32Z — each 2 seconds apart, no bulk timestamp fabrication detected."
+    }
+  }
+}

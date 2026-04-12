@@ -1,0 +1,26 @@
+{
+  "finding_id": "F-002",
+  "valid": true,
+  "checks": {
+    "cvss_consistency": {
+      "passed": true,
+      "detail": "Severity 'HIGH' matches CVSS 3.1 score 7.4 (valid range 7.0-8.9)"
+    },
+    "evidence_exists": {
+      "passed": true,
+      "detail": "All required files present: description.md, poc.py, poc_output.txt, evidence/raw-source.txt"
+    },
+    "poc_validation": {
+      "passed": true,
+      "detail": "Valid Python syntax confirmed. TARGET = 'http://localhost:3000' referenced. Live execution produced 3/3 VULNERABLE results matching poc_output.txt (Classic script tag, img onerror, SVG onload all stored unescaped)"
+    },
+    "claims_vs_raw": {
+      "passed": true,
+      "detail": "All 10 claims corroborated in raw-source.txt: stored XSS across products 1-5 (9 payloads), all 4 payload types present (script, img onerror, svg onload, iframe javascript), endpoint PUT /rest/products/{id}/reviews confirmed, message param with no HTML escaping confirmed, NeDB persistence confirmed, 3/3 reproduction cycles confirmed"
+    },
+    "log_corroboration": {
+      "passed": true,
+      "detail": "All 4 phases present with distinct timestamps: recon (09:46:06), experiment (09:46:14, gap 8s), test (09:47:53, gap ~99s), verify (09:48:07, gap 14s). Verify actions separated by 9 seconds (09:48:07 -> 09:48:16). No bulk timestamps detected."
+    }
+  }
+}

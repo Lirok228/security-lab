@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  dashboard:
+    build: ./dashboard
+    container_name: security-lab-dashboard
+    ports:
+      - "7777:7777"
+    volumes:
+      # live-reload отчётов и скиллов без пересборки
+      - ./reports:/reports:ro
+      - ./.claude/skills:/skills:ro
+    environment:
+      - LAB_REPORTS=/reports
+      - LAB_SKILLS=/skills
+    restart: unless-stopped
