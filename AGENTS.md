@@ -4,27 +4,34 @@
 
 ## Artifact Discipline (ALL AGENTS)
 
-**NEVER write any file to the project root or current working directory.** Every file an agent produces — tool output, downloads, scripts, certificates, keys, tickets, captures, dumps, reports, evidence — MUST go into a structured `outputs/` subtree.
+**NEVER write any file to the project root or current working directory.** Every file an agent produces — tool output, downloads, scripts, certificates, keys, tickets, captures, dumps, reports, evidence — MUST go into the structured `projects/` subtree.
 
 ### Directory Structure
 
 ```
-outputs/YYYYMMDD_<target-or-engagement>/
-├── recon/              # Nmap, dirsearch, fingerprinting results
-├── findings/           # Finding descriptions, PoCs, workflows
-│   └── finding-NNN/
-│       ├── description.md
-│       ├── poc.py
-│       └── evidence/
-├── evidence/           # Screenshots, HTTP captures
-├── logs/               # Activity logs (NDJSON)
-├── artifacts/          # ALL tool-generated files
-│   ├── certs/          # .crt, .key, .pfx, .pem, .csr, .p12
-│   ├── tickets/        # .ccache, .kirbi (Kerberos)
-│   ├── captures/       # .pcap, .cap network captures
-│   └── loot/           # Downloaded files, database dumps, configs, hashes
-└── reports/            # Dirsearch, submission reports, final PDF
+projects/<target>/
+├── <agent>/                    # One directory per agent (orizon, manual, transilience…)
+│   ├── recon/                  # Nmap, dirsearch, fingerprinting results
+│   ├── findings/               # Finding descriptions, PoCs, workflows
+│   │   └── finding-NNN/
+│   │       ├── description.md
+│   │       ├── poc.py
+│   │       └── evidence/
+│   ├── evidence/               # Screenshots, HTTP captures
+│   ├── logs/                   # Activity logs (NDJSON)
+│   ├── artifacts/              # ALL tool-generated files
+│   │   ├── certs/              # .crt, .key, .pfx, .pem, .csr, .p12
+│   │   ├── tickets/            # .ccache, .kirbi (Kerberos)
+│   │   ├── captures/           # .pcap, .cap network captures
+│   │   └── loot/               # Downloaded files, database dumps, configs, hashes
+│   └── report.md               # Agent-level findings report
+├── FINAL-REPORT.md             # Consolidated report for developers/IT
+└── AGENTS-COMPARISON.md        # Internal agent effectiveness analysis
 ```
+
+**`FINAL-REPORT.md`** — объединяет findings всех агентов по таргету, дедуплицирует, ранжирует по severity (CVSS 3.1). Формат: понятный разработчику (что сломано, как воспроизвести, как исправить). Создаётся после завершения всех агентов.
+
+**`AGENTS-COMPARISON.md`** — внутренний документ, не передаётся разработчикам. Содержит матрицу уязвимость × агент, уникальные findings каждого агента, время работы, процент покрытия и выводы об эффективности агентов по классам уязвимостей.
 
 ### Enforcement Rules
 
@@ -32,8 +39,8 @@ outputs/YYYYMMDD_<target-or-engagement>/
    - Use the tool's `-o`/`-out`/`-output`/`-oN` flag to write directly into the right subdirectory, OR
    - `cd` into the target subdirectory first, OR
    - `mv` the file immediately after generation
-2. **Create directories on first use**: `mkdir -p outputs/YYYYMMDD_<target>/artifacts/{certs,tickets,captures,loot}`
-3. **Naming convention**: Always prefix with date `YYYYMMDD_` (e.g., `outputs/20260319_pirate.htb/`, `outputs/20260319_10.129.9.51/`). If no target name is provided, derive from hostname/IP.
+2. **Create directories on first use**: `mkdir -p projects/<target>/<agent>/{recon,findings,evidence,logs,artifacts/{certs,tickets,captures,loot}}`
+3. **Naming convention**: target = hostname or IP (e.g., `projects/eyeflow.ru/`, `projects/10.129.9.51/`).
 4. **Orchestrators/HTB agent**: create the full directory tree before spawning sub-agents, pass the output path in the prompt
 5. **Applies to ALL file types**: certificates, keys, tickets, pcaps, wordlists, scripts, hash files, database dumps, downloaded source code, git dumps, screenshots — no exceptions
 
