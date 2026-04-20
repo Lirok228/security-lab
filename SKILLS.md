@@ -1,5 +1,5 @@
 # Security Skills — Справочник
-**37 skills | Обновлено: 2026-04-12**
+**43 skills | Обновлено: 2026-04-20**
 
 ---
 
@@ -7,16 +7,17 @@
 
 | Кейс | Skills в порядке запуска |
 |------|--------------------------|
-| Black-box пентест | `recon-dominator` → `webapp-exploit-hunter` → `api-breaker` → `attack-path-architect` → `vuln-chain-composer` |
+| Black-box web пентест | `recon-dominator` → `webapp-exploit-hunter` → `api-breaker` → `attack-path-architect` → `vuln-chain-composer` |
 | Static code review | `security-review` → `source-code-scanning` → `injection` / `authentication` |
-| Bug bounty | `bb-methodology-shuvonsec` → `idor-testing` → `web-app-logic` → `server-side` → `triage-validation-shuvonsec` → `report-writing-shuvonsec` |
 | API пентест | `api-breaker` → `api-security` → `idor-testing` → `injection` |
 | Финансовая логика | `web-app-logic` → `idor-testing` → `authentication` |
 | AI/LLM приложение | `ai-threat-testing` → `server-side` → `injection` |
+| AD пентест | `performing-active-directory-penetration-test` → `conducting-internal-reconnaissance-with-bloodhound-ce` → `exploiting-kerberoasting-with-impacket` → `exploiting-active-directory-with-bloodhound` |
+| ADCS атаки | `exploiting-active-directory-certificate-services-esc1` |
+| Domain persistence | `conducting-domain-persistence-with-dcsync` |
+| Lateral movement | `performing-lateral-movement-with-wmiexec` → `conducting-pass-the-ticket-attack` |
 | Cloud инфраструктура | `cloud-pivot-finder` → `cloud-containers` → `infrastructure` |
-| Отчёт для H1/Bugcrowd | `triage-validation-shuvonsec` → `report-writing-shuvonsec` |
 | Reverse engineering | `ghidra-headless-tob` |
-| CTF / HackTheBox | `hackthebox` → `system` → `infrastructure` |
 
 ---
 
@@ -178,20 +179,7 @@
 
 ---
 
-## Группа 4: Bug Bounty Pipeline
-
-### `bb-methodology-shuvonsec`
-**Что делает:** Mindset + 5-phase workflow для bug bounty — developer psychology, what-if experiments, как думать атакующим.  
-**Когда:** Начало новой BB сессии, или потерял фокус что тестировать.  
-**Вызов:** "Как подходить к тестированию http://target.com"
-
----
-
-### `bug-bounty-main-shuvonsec`
-**Что делает:** Полный BB pipeline — recon → subdomain enum → JS analysis → тестирование → валидация → отчёт.  
-**Когда:** Bug bounty engagement от начала до конца.  
-
----
+## Группа 4: Reporting Pipeline
 
 ### `triage-validation-shuvonsec`
 **Что делает:** 7-Question Gate — убивает false positives до написания отчёта. Проверяет: есть ли реальный impact, воспроизводимость, уникальность.  
@@ -210,12 +198,6 @@
 ### `transilience-report-style`
 **Что делает:** PDF отчёты в стиле Transilience — Threat Intelligence формат для команды/менеджмента.  
 **Когда:** Нужен формальный отчёт для внутреннего использования.  
-
----
-
-### `hackerone`
-**Что делает:** Автоматизация H1 — парсинг scope, управление submissions, работа с программами.  
-**Когда:** Активная работа с H1 платформой.  
 
 ---
 
@@ -269,12 +251,6 @@
 
 ---
 
-### `hackthebox`
-**Что делает:** Автоматизация HTB — login, выбор машины, VPN, делегирует решение pentest агентам.  
-**Когда:** Работа с HackTheBox платформой.  
-
----
-
 ### `auth-bypass-testing`
 **Что делает:** Методология тестирования broken authentication — password policy, session handling, MFA, credential management.  
 **Когда:** Нужен checklist по auth (менее детальный чем `authentication`).  
@@ -292,6 +268,74 @@
 ### `skiller`
 **Что делает:** Создание и управление skills — генерирует структуру, валидирует best practices.  
 **Когда:** Нужно создать новый skill.  
+
+---
+
+## Группа 6: Active Directory / Infrastructure
+
+### `performing-active-directory-penetration-test`
+**Что делает:** Полный AD pentest workflow — перечисление домена, атаки на Kerberos, lateral movement, domain compromise.  
+**Когда:** Начало любого AD engagement.
+
+---
+
+### `conducting-internal-reconnaissance-with-bloodhound-ce`
+**Что делает:** Сбор данных домена через BloodHound CE — пользователи, группы, GPO, пути атаки.  
+**Когда:** Первый шаг внутренней разведки в AD среде.
+
+---
+
+### `performing-active-directory-bloodhound-analysis`
+**Что делает:** Анализ BloodHound графа — поиск кратчайших путей к DA, AS-REP, Kerberoastable аккаунты.  
+**Когда:** После сбора данных BloodHound, перед выбором вектора атаки.
+
+---
+
+### `exploiting-active-directory-with-bloodhound`
+**Что делает:** Эксплуатация путей атаки найденных BloodHound — ACL abuse, delegation attacks, GenericAll/WriteDACL.  
+**Когда:** Есть BloodHound данные, нужно реализовать конкретный attack path.
+
+---
+
+### `exploiting-active-directory-certificate-services-esc1`
+**Что делает:** ADCS атаки ESC1 через certipy — enrollment abuse, certificate request → domain admin.  
+**Когда:** В домене есть AD CS, нужно проверить ESC1-ESC13 misconfigurations.
+
+---
+
+### `exploiting-kerberoasting-with-impacket`
+**Что делает:** Kerberoasting через impacket — запрос TGS для SPN-аккаунтов, hashcat crack.  
+**Когда:** Есть domain user, нужны service account credentials.
+
+---
+
+### `conducting-pass-the-ticket-attack`
+**Что делает:** Pass-the-Ticket / Pass-the-Hash атаки — импорт Kerberos tickets, lateral movement.  
+**Когда:** Получены NTLM hashes или Kerberos tickets.
+
+---
+
+### `conducting-domain-persistence-with-dcsync`
+**Что делает:** DCSync атака — репликация всех хешей домена через права Replication-Get-Changes.  
+**Когда:** Получены права DA или Replication, нужен дамп всех учётных данных.
+
+---
+
+### `performing-active-directory-forest-trust-attack`
+**Что делает:** Forest trust атаки — SID history abuse, trust ticket forgery, cross-forest escalation.  
+**Когда:** Многолесная AD среда, есть trust relationships.
+
+---
+
+### `performing-lateral-movement-with-wmiexec`
+**Что делает:** Lateral movement через WMI/DCOM — удалённое выполнение команд, pivot между хостами.  
+**Когда:** Есть credentials/hashes, нужно перемещаться по сети.
+
+---
+
+### `performing-privilege-escalation-assessment`
+**Что делает:** Системная оценка privilege escalation — Windows/Linux векторы, misconfigured services, token abuse.  
+**Когда:** Есть initial access, нужен путь к повышению привилегий.
 
 ---
 
