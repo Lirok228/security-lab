@@ -7,10 +7,10 @@
 
 ## Что это
 
-Рабочее окружение для пентестинга с набором из **37 security skills** и **6 агентов** для Claude Code. Каждый таргет тестируется несколькими агентами независимо, результаты сравниваются.
+Рабочее окружение для пентестинга с набором из **43 security skills** и **6 агентов** для Claude Code. Каждый таргет тестируется несколькими агентами независимо, результаты сравниваются.
 
 **Ключевые возможности:**
-- 37 установленных security skills: recon, exploitation, IDOR, injection, auth bypass, API, cloud, AI/LLM
+- 43 security skills: recon, exploitation, IDOR, injection, auth bypass, API, cloud, AI/LLM, AD/ADCS
 - Multi-agent оркестрация через `pentester-orchestrator` с параллельными Kali-контейнерами
 - Три типа отчётов на каждый таргет: агентский, финальный (для разработчиков) и сравнительный (внутренний)
 - Dashboard для просмотра результатов (`http://localhost:7777`)
@@ -20,17 +20,14 @@
 ## Быстрый старт
 
 ```bash
-# 1. Клонировать репозиторий
+# 1. Клонировать репозиторий (skills включены)
 git clone https://github.com/Lirok228/security-lab.git && cd security-lab
 
-# 2. Установить skills (37 шт. из 8 источников)
-bash files/install.sh
-
-# 3. (опционально) Запустить dashboard
+# 2. (опционально) Запустить dashboard
 docker compose -f docker-compose.dashboard.yml up -d --build
 open http://localhost:7777
 
-# 4. Открыть Claude Code и начать тестирование
+# 3. Открыть Claude Code и начать тестирование
 claude
 ```
 
@@ -42,7 +39,7 @@ claude
 security-lab/
 ├── CLAUDE.md                    # Инструкции для Claude Code (загружается автоматически)
 ├── AGENTS.md                    # Архитектура агентов: дисциплина артефактов, Docker mode
-├── SKILLS.md                    # Справочник 37 skills с описанием и примерами вызова
+├── SKILLS.md                    # Справочник 43 skills с описанием и примерами вызова
 ├── docker-compose.dashboard.yml # Dashboard с результатами (порт 7777)
 ├── dashboard/                   # Исходники dashboard (Python, порт 7777)
 ├── reports/
@@ -54,13 +51,15 @@ security-lab/
 │       ├── FINAL-REPORT.md      # Сводный отчёт для разработчиков/ИТ
 │       └── AGENTS-COMPARISON.md # Внутренний анализ эффективности агентов
 ├── configs/                     # Scan profiles, wordlists
-├── scripts/                     # Вспомогательные скрипты
-└── files/
-    ├── install.sh               # Автоустановщик всех skills
-    └── security-skills-toolkit.md  # Каталог skills с бенчмарками
+├── files/
+│   ├── install.sh               # Скрипт переустановки skills из источников
+│   └── security-skills-toolkit.md  # Каталог skills с бенчмарками
+└── .claude/
+    ├── skills/                  # 43 установленных skills
+    └── agents/                  # Определения агентов
 ```
 
-> `projects/` и `.claude/skills/` в `.gitignore` — первые содержат чувствительные данные, вторые переустанавливаются через `install.sh`.
+> `projects/` в `.gitignore` — содержит чувствительные данные пентестов.
 
 ---
 
@@ -81,11 +80,12 @@ security-lab/
 
 | Кейс | Skills в порядке запуска |
 |------|--------------------------|
-| Black-box пентест | `recon-dominator` → `webapp-exploit-hunter` → `api-breaker` → `attack-path-architect` → `vuln-chain-composer` |
+| Black-box web пентест | `recon-dominator` → `webapp-exploit-hunter` → `api-breaker` → `attack-path-architect` → `vuln-chain-composer` |
 | Static code review | `security-review` → `source-code-scanning` |
-| Bug bounty | `bb-methodology-shuvonsec` → `idor-testing` → `triage-validation-shuvonsec` → `report-writing-shuvonsec` |
 | API пентест | `api-breaker` → `api-security` → `injection` |
 | AI/LLM приложение | `ai-threat-testing` → `server-side` → `injection` |
+| AD пентест | `performing-active-directory-penetration-test` → `conducting-internal-reconnaissance-with-bloodhound-ce` → `exploiting-kerberoasting-with-impacket` → `exploiting-active-directory-with-bloodhound` |
+| ADCS атаки | `exploiting-active-directory-certificate-services-esc1` |
 
 Полный справочник: [`SKILLS.md`](SKILLS.md)
 
@@ -96,13 +96,13 @@ security-lab/
 | Пакет | Skills |
 |-------|--------|
 | [getsentry/skills](https://github.com/getsentry/skills) | security-review |
-| [agamm/claude-code-owasp](https://github.com/agamm/claude-code-owasp) | owasp-security |
 | [trailofbits/skills-curated](https://github.com/trailofbits/skills-curated) | source-code-scanning, ffuf, ghidra |
 | [transilienceai/communitytools](https://github.com/transilienceai/communitytools) | coordination + 20 pentest skills + agents |
-| [shuvonsec/claude-bug-bounty](https://github.com/shuvonsec/claude-bug-bounty) | bb-methodology, idor, triage, report-writing и др. |
+| [shuvonsec/claude-bug-bounty](https://github.com/shuvonsec/claude-bug-bounty) | idor, triage, report-writing и др. |
 | [Orizon-eu/claude-code-pentest](https://github.com/Orizon-eu/claude-code-pentest) | recon-dominator, webapp-exploit-hunter, api-breaker, vuln-chain-composer |
 | [unicodeveloper/shannon](https://github.com/KeygraphHQ/shannon) | shannon |
 | [Eyadkelleh/awesome-claude-skills-security](https://github.com/Eyadkelleh/awesome-claude-skills-security) | security-arsenal, pentest agents |
+| [mukul975/Anthropic-Cybersecurity-Skills](https://github.com/mukul975/Anthropic-Cybersecurity-Skills) | AD/ADCS, BloodHound, Kerberoasting, lateral movement (11 skills) |
 
 ---
 
