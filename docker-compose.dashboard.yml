@@ -7,7 +7,9 @@ services:
     ports:
       - "7777:7777"
     volumes:
-      # live-reload отчётов и скиллов без пересборки
+      # live-reload без пересборки образа
+      - ./dashboard/app.py:/app/app.py:ro
+      - ./dashboard/static:/app/static:ro
       - ./reports:/reports:ro
       - ./.claude/skills:/skills:ro
     environment:
