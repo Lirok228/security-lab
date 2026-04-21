@@ -16,14 +16,14 @@ docker compose -f docker-compose.dashboard.yml up -d --build
 ## Правила
 1. Тестировать ТОЛЬКО цель, указанную пользователем в текущей сессии
 2. НЕ отправлять запросы на хосты, не указанные явно
-3. Все файлы → `./projects/{таргет}/{агент}/`
+3. Все файлы → `./reports/{таргет}/{агент}/`
 4. Каждый finding: severity (CVSS 3.1), CWE ID, описание, PoC команда, remediation
 5. Язык отчётов: русский, технические термины на английском
 
 ## Структура проектов
 
 ```
-projects/<target>/
+reports/<target>/
 ├── <agent>/              # orizon, manual, transilience, shannon…
 │   ├── recon/
 │   ├── findings/finding-NNN/
@@ -59,7 +59,7 @@ python3 .claude/tools/env-reader.py VAR1 VAR2 VAR3
 **НИКОГДА** не читать `.env` через `source .env`, `cat .env` или `echo $VAR` — это не работает (каждый Bash вызов — чистый shell).
 
 ## Директории
-- `./projects/` — все данные по таргетам (артефакты + отчёты агентов + FINAL-REPORT)
+- `./reports/` — все данные по таргетам (артефакты + отчёты агентов + FINAL-REPORT)
 - `./reports/SUMMARY.md` — сводная таблица всех тестов (все таргеты, все агенты)
 - `./configs/` — scan profiles, wordlists, кастомные правила
 - `./static/` — клонированные исходники для sentry-review (gitignore)
@@ -68,7 +68,7 @@ python3 .claude/tools/env-reader.py VAR1 VAR2 VAR3
 
 ## Агенты для сравнения
 
-Цель: сравнить что каждый агент находит по одному таргету. Структура: `./projects/{таргет}/{агент}/`
+Цель: сравнить что каждый агент находит по одному таргету. Структура: `./reports/{таргет}/{агент}/`
 
 | Агент | Тип | Описание |
 |-------|-----|---------|
@@ -87,7 +87,7 @@ python3 .claude/tools/env-reader.py VAR1 VAR2 VAR3
 
 | Кейс | Skills в порядке запуска |
 |------|--------------------------|
-| Black-box пентест | `recon-dominator` → `webapp-exploit-hunter` → `api-breaker` → `attack-path-architect` → `vuln-chain-composer` |
+| Black-box пентест | `recon-dominator` → `attack-path-architect` → `webapp-exploit-hunter` → `api-breaker` → `cloud-pivot-finder` → `vuln-chain-composer` |
 | Static code review | `security-review` → `source-code-scanning` |
 | Bug bounty | `bb-methodology-shuvonsec` → `idor-testing` → `triage-validation-shuvonsec` → `report-writing-shuvonsec` |
 | API пентест | `api-breaker` → `api-security` → `injection` |
@@ -119,6 +119,6 @@ python3 .claude/tools/env-reader.py VAR1 VAR2 VAR3
 3. Source code review → `security-review` skill (если есть исходники в `./static/`)
 4. Dynamic testing → curl / Playwright / sqlmap
 5. Validate → каждый finding confirmed exploitable
-6. Report → `./projects/{таргет}/{агент}/report.md`
-7. После всех агентов → собрать `./projects/{таргет}/FINAL-REPORT.md` и `AGENTS-COMPARISON.md`
+6. Report → `./reports/{таргет}/{агент}/report.md`
+7. После всех агентов → собрать `./reports/{таргет}/FINAL-REPORT.md` и `AGENTS-COMPARISON.md`
 8. Обновить `./reports/SUMMARY.md`

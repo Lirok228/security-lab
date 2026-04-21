@@ -7,7 +7,7 @@
 
 | Кейс | Skills в порядке запуска |
 |------|--------------------------|
-| Black-box web пентест | `recon-dominator` → `webapp-exploit-hunter` → `api-breaker` → `attack-path-architect` → `vuln-chain-composer` |
+| Black-box web пентест | `recon-dominator` → `attack-path-architect` → `webapp-exploit-hunter` → `api-breaker` → `cloud-pivot-finder` → `vuln-chain-composer` |
 | Static code review | `security-review` → `source-code-scanning` → `injection` / `authentication` |
 | API пентест | `api-breaker` → `api-security` → `idor-testing` → `injection` |
 | Финансовая логика | `web-app-logic` → `idor-testing` → `authentication` |
@@ -23,6 +23,7 @@
 
 ## Группа 1: Orizon Pipeline (6 skills)
 > Запускать последовательно. Каждый берёт output предыдущего.
+> **Порядок:** recon → стратегия → эксплуатация → API → cloud → цепочки
 
 ### `recon-dominator`
 **Что делает:** Полная разведка attack surface — endpoints, порты, tech stack, subdomains, wayback URLs.  
@@ -33,9 +34,18 @@
 
 ---
 
+### `attack-path-architect`
+**Что делает:** Строит attack tree с MITRE ATT&CK mapping на основе recon данных, скорит каждый путь (feasibility × impact × stealth), приоритизирует векторы атаки **до** начала эксплуатации.  
+**Когда:** После recon-dominator — до эксплуатации. Даёт стратегический план: какие endpoints атаковать первыми и почему.  
+**Вызов:** `/attack-path-architect http://localhost:5050 findings: F-01 SQLi, F-04 SSRF ...`  
+**⚠️ Важно:** `classify_assets.py` не парсит произвольный JSON — создавать `classified.json` вручную (формат: `{"assets": [{...}]}`).  
+**Скриптов:** 3 Python
+
+---
+
 ### `webapp-exploit-hunter`
 **Что делает:** Автоматический поиск уязвимостей — SQLi, XSS, SSRF, IDOR, mass assignment, auth bypass, file upload, race conditions.  
-**Когда:** После recon-dominator, или самостоятельно если знаешь target.  
+**Когда:** После attack-path-architect — целенаправленная эксплуатация по приоритетным путям.  
 **Вызов:** `/webapp-exploit-hunter http://localhost:5050`  
 **Output:** `findings.json` с PoC для каждой уязвимости  
 **Скриптов:** 11 Python
@@ -58,20 +68,11 @@
 
 ---
 
-### `attack-path-architect`
-**Что делает:** Строит attack tree с MITRE ATT&CK mapping, скорит каждый путь (feasibility × impact × stealth).  
-**Когда:** После сбора findings, нужен MITRE mapping или приоритизация.  
-**Вызов:** `/attack-path-architect http://localhost:5050 findings: F-01 SQLi, F-04 SSRF ...`  
-**⚠️ Важно:** `classify_assets.py` не парсит произвольный JSON — создавать `classified.json` вручную (формат: `{"assets": [{...}]}`).  
-**Скриптов:** 3 Python
-
----
-
 ### `vuln-chain-composer`
-**Что делает:** Собирает multi-step exploit chains, пересчитывает CVSS для цепочек, генерирует отчёт.  
+**Что делает:** Собирает multi-step exploit chains из всех найденных findings, пересчитывает CVSS для цепочек, генерирует отчёт.  
 **Когда:** Финальный шаг pipeline. Или когда есть 3+ findings и нужно показать worst-case.  
 **Вызов:** `/vuln-chain-composer http://localhost:5050 findings: findings.json attack_tree: attack_tree.json`  
-**⚠️ Важно:** correlate.py находит только generic chains — VulnBank-специфичные цепочки (SSRF→JWT, PIN ATO) дописывать вручную.  
+**⚠️ Важно:** correlate.py находит только generic chains — специфичные цепочки (SSRF→JWT, PIN ATO) дописывать вручную.  
 **Скриптов:** 6 Python
 
 ---
