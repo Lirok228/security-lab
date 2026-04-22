@@ -3,6 +3,9 @@ projects/
 scans/
 outputs/
 
+# Результаты тестирований (данные таргетов)
+reports/*/
+
 # Исходники для code review — клонировать вручную
 static/
 

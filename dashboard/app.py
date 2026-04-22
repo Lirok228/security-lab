@@ -13,6 +13,12 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+try:
+    import markdown as _md_lib
+    _MD_AVAILABLE = True
+except ImportError:
+    _MD_AVAILABLE = False
+
 LAB_DIR = Path(__file__).parent.parent
 REPORTS_DIR = Path(os.environ.get("LAB_REPORTS", str(LAB_DIR / "reports")))
 SKILLS_DIR  = Path(os.environ.get("LAB_SKILLS",  str(LAB_DIR / ".claude" / "skills")))
@@ -360,7 +366,15 @@ def parse_md_findings(text):
         ep_m   = re.search(r'\*\*Endpoint[:\*\s]+`?([^\n`\*]+)', body, re.IGNORECASE)
         cvss_m = re.search(r'CVSS\s*(?:3\.1)?[:\s]+(\d+(?:\.\d+)?)', body, re.IGNORECASE)
 
-        sev_raw = sev_m.group(1).lower().strip() if sev_m else 'medium'
+        # Severity may be embedded in the section title: "F-001 — CRITICAL: Some Title"
+        title_sev_m = re.match(r'^(CRITICAL|HIGH|MEDIUM|LOW|INFO)\s*[:\-–—]\s*', title, re.IGNORECASE)
+        if title_sev_m:
+            sev_raw = title_sev_m.group(1).lower()
+            title   = title[title_sev_m.end():].strip()
+        elif sev_m:
+            sev_raw = sev_m.group(1).lower().strip()
+        else:
+            sev_raw = 'medium'
         confirmed = ('✅' in body or 'confirmed' in body.lower()
                      or 'подтвержд' in body.lower() or '❌' not in body)
 
@@ -433,7 +447,12 @@ def get_target_data(target_name):
 
         # If no JSON findings, try to parse from markdown files
         if not findings:
-            md_files = list(agent_dir.glob("*.md"))
+            # Only parse report.md to avoid attack-chains.md / attack-paths.md
+            # being picked up as fake findings
+            md_files = sorted(
+                [f for f in agent_dir.glob("*.md") if f.name == "report.md"]
+                or agent_dir.glob("*.md")
+            )
             for md_file in md_files:
                 try:
                     md_text = md_file.read_text(errors='replace')
@@ -454,13 +473,19 @@ def get_target_data(target_name):
                         confirmed += 1
                 summary = {**counts, "total": len(findings), "confirmed": confirmed}
 
-        # Normalize confirmed field on each finding
+        # Normalize confirmed field on each finding.
+        # Only override _confirmed when an explicit confirmed/status key exists
+        # (JSON-parsed findings). Markdown-parsed findings already have _confirmed
+        # set correctly by parse_md_findings — don't overwrite them.
         for f in findings:
-            raw_conf = f.get("confirmed", f.get("status", ""))
-            if raw_conf is True or str(raw_conf).upper() in ("TRUE", "CONFIRMED"):
+            raw_conf = f.get("confirmed", f.get("status"))  # None if key absent
+            if raw_conf is not None:
+                if raw_conf is True or str(raw_conf).upper() in ("TRUE", "CONFIRMED"):
+                    f["_confirmed"] = True
+                else:
+                    f["_confirmed"] = False
+            elif "_confirmed" not in f:
                 f["_confirmed"] = True
-            else:
-                f["_confirmed"] = False
             # Normalize severity to lowercase
             f["_sev"] = str(f.get("severity", "")).lower()
 
@@ -2143,7 +2168,10 @@ def page_target(target_name):
   </div>
   <div class="agent-mini-sev">{sev_html if sev_html else '<span style="font-size:11px;color:var(--text2)">no severity data</span>'}</div>
   <div class="agent-mini-findings">{top_html}</div>
-  <div class="agent-mini-files">{len(files)} file{"s" if len(files) != 1 else ""} · <a href="/target?name={target_name}#files-{agent}">browse ↓</a></div>
+  <div class="agent-mini-files">
+    {len(files)} file{"s" if len(files) != 1 else ""} · <a href="/target?name={target_name}#files-{agent}">browse ↓</a>
+    · <a href="/print?target={target_name}&agent={agent}" target="_blank" style="color:#7c3aed;font-weight:600">⬇ PDF</a>
+  </div>
 </div>"""
 
     # ── Section 2: All Findings ───────────────────
@@ -2773,6 +2801,17 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
         qs = parse_qs(parsed.query)
+        if path == "/print":
+            target = qs.get("target", [""])[0]
+            agent  = qs.get("agent",  [""])[0]
+            html   = page_print(target, agent)
+            body   = html.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if path == "/":
             self.send_page(page_index())
         elif path == "/reports":
@@ -2813,6 +2852,239 @@ class Handler(BaseHTTPRequestHandler):
         target = data.get("target", [""])[0]
         ptype  = data.get("ptype", ["auto"])[0]
         self.send_page(page_run_post(target, ptype))
+
+
+def page_print(target: str, agent: str) -> str:
+    """Render report.md as a clean, print-optimised HTML page."""
+    if not target or not agent:
+        return "<h1>Missing target or agent</h1>"
+
+    report_path = REPORTS_DIR / target / agent / "report.md"
+    if not report_path.exists():
+        return f"<h1>report.md not found: {target}/{agent}</h1>"
+
+    raw_md = report_path.read_text(errors="replace")
+
+    if _MD_AVAILABLE:
+        content_html = _md_lib.markdown(
+            raw_md,
+            extensions=["tables", "fenced_code", "nl2br"],
+        )
+    else:
+        # Fallback: wrap in <pre> if markdown lib not installed yet
+        escaped = raw_md.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        content_html = f"<pre style='white-space:pre-wrap'>{escaped}</pre>"
+
+    date_str = datetime.now().strftime("%Y-%m-%d")
+
+    return f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pentest Report — {target} / {agent}</title>
+<style>
+  /* ── Base ── */
+  *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.65;
+    color: #1a1a1a;
+    background: #fff;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 48px;
+  }}
+
+  /* ── Print button (hidden when printing) ── */
+  .print-bar {{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: #7c3aed;
+    color: #fff;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 999;
+    font-size: 13px;
+  }}
+  .print-bar strong {{ font-size: 14px; }}
+  .btn-print {{
+    background: #fff;
+    color: #7c3aed;
+    border: none;
+    padding: 7px 20px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: .02em;
+  }}
+  .btn-print:hover {{ background: #f3f0ff; }}
+  .content {{ margin-top: 52px; }}
+
+  /* ── Report header ── */
+  .report-header {{
+    border-bottom: 2px solid #7c3aed;
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+  }}
+  .report-header h1 {{
+    font-size: 22px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 4px;
+  }}
+  .report-meta {{
+    font-size: 11px;
+    color: #666;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }}
+  .report-meta span {{ display: flex; align-items: center; gap: 4px; }}
+
+  /* ── Typography ── */
+  h1 {{ font-size: 20px; font-weight: 700; color: #111; margin: 32px 0 12px; }}
+  h2 {{ font-size: 16px; font-weight: 700; color: #1a1a1a; margin: 28px 0 10px;
+        border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }}
+  h3 {{ font-size: 14px; font-weight: 700; color: #374151; margin: 20px 0 8px; }}
+  h4 {{ font-size: 13px; font-weight: 600; color: #4b5563; margin: 14px 0 6px; }}
+  p  {{ margin: 6px 0 10px; }}
+  ul, ol {{ margin: 6px 0 10px 20px; }}
+  li {{ margin-bottom: 3px; }}
+  strong {{ font-weight: 700; color: #111; }}
+  em {{ font-style: italic; color: #555; }}
+  a  {{ color: #7c3aed; text-decoration: none; }}
+  hr {{ border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }}
+
+  /* ── Finding headings — colour by severity ── */
+  h2:has(+ *) {{ }}
+  h2[id*="critical"], h2[id*="crit"] {{ color: #dc2626; }}
+  h2[id*="high"]                     {{ color: #d97706; }}
+  h2[id*="medium"], h2[id*="med"]    {{ color: #2563eb; }}
+
+  /* Severity badges inline in headings */
+  h2 {{ }}
+
+  /* ── Code ── */
+  code {{
+    font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+    font-size: 11px;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #c0254f;
+  }}
+  pre {{
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 10px 0 14px;
+    font-size: 11px;
+    line-height: 1.55;
+  }}
+  pre code {{
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }}
+
+  /* ── Tables ── */
+  table {{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 10px 0 16px;
+  }}
+  th {{
+    background: #f3f4f6;
+    font-weight: 700;
+    text-align: left;
+    padding: 7px 10px;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+  }}
+  td {{
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    vertical-align: top;
+  }}
+  tr:nth-child(even) td {{ background: #fafafa; }}
+
+  /* ── Blockquote (used for artifact warnings) ── */
+  blockquote {{
+    border-left: 3px solid #f59e0b;
+    background: #fffbeb;
+    padding: 8px 14px;
+    margin: 10px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 12px;
+    color: #92400e;
+  }}
+
+  /* ── Severity colours for table cells ── */
+  td:first-child {{ white-space: nowrap; }}
+
+  /* ── Page breaks ── */
+  h2 {{ page-break-before: auto; }}
+  pre, table, blockquote {{ page-break-inside: avoid; }}
+
+  /* ── Print media ── */
+  @media print {{
+    * {{ -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }}
+    .print-bar {{ display: none !important; }}
+    .print-hint {{ display: none !important; }}
+    .content {{ margin-top: 0; }}
+    body {{ padding: 0; font-size: 11.5px; max-width: 100%; }}
+    pre {{ white-space: pre-wrap !important; word-break: break-all !important;
+           overflow-x: visible !important; page-break-inside: avoid; }}
+    pre code {{ white-space: pre-wrap !important; word-break: break-all !important; }}
+    h2 {{ page-break-after: avoid; }}
+    @page {{ margin: 14mm 16mm; size: A4; }}
+  }}
+</style>
+</head>
+<body>
+
+<div class="print-bar">
+  <strong>Security Lab — {target} / {agent}</strong>
+  <div style="display:flex;align-items:center;gap:16px">
+    <span class="print-hint" style="font-size:12px;color:#6b7280">💡 В настройках печати снять галочку «Колонтитулы» (Headers and footers)</span>
+    <button class="btn-print" onclick="window.print()">⬇ Сохранить PDF</button>
+  </div>
+</div>
+
+<div class="content">
+  <div class="report-header">
+    <div class="report-meta">
+      <span>🎯 <strong>Target:</strong> {target}</span>
+      <span>🤖 <strong>Agent:</strong> {agent}</span>
+      <span>📅 <strong>Printed:</strong> {date_str}</span>
+    </div>
+  </div>
+  {content_html}
+</div>
+
+<script>
+  // Highlight severity keywords in h2 headings
+  document.querySelectorAll('h2').forEach(h => {{
+    const t = h.textContent;
+    if (/CRITICAL/i.test(t)) h.style.color = '#dc2626';
+    else if (/HIGH/i.test(t))     h.style.color = '#d97706';
+    else if (/MEDIUM/i.test(t))   h.style.color = '#2563eb';
+    else if (/LOW/i.test(t))      h.style.color = '#059669';
+  }});
+</script>
+
+</body>
+</html>"""
 
 
 if __name__ == "__main__":

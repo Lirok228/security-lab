@@ -16,6 +16,8 @@
 
 | Дата | Таргет | Агент | Тип | Findings | Confirmed | Уникальные | Время |
 |------|--------|-------|-----|----------|-----------|------------|-------|
+| 2026-04-20 | eyeflow.ru | orizon (pentester-orchestrator) | multi-agent, black-box | 10 | 10 | 4 | ~30 мин |
+| 2026-04-21 | eyeflow.ru | manual (webapp-exploit-hunter + api-breaker + cloud-pivot-finder) | black-box, skill-based | 14 | 14 | 9 | ~2 ч |
 
 ## Структура
 

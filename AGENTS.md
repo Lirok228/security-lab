@@ -9,7 +9,7 @@
 ### Directory Structure
 
 ```
-projects/<target>/
+reports/<target>/
 ├── <agent>/                    # One directory per agent (orizon, manual, transilience…)
 │   ├── recon/                  # Nmap, dirsearch, fingerprinting results
 │   ├── findings/               # Finding descriptions, PoCs, workflows
@@ -39,8 +39,8 @@ projects/<target>/
    - Use the tool's `-o`/`-out`/`-output`/`-oN` flag to write directly into the right subdirectory, OR
    - `cd` into the target subdirectory first, OR
    - `mv` the file immediately after generation
-2. **Create directories on first use**: `mkdir -p projects/<target>/<agent>/{recon,findings,evidence,logs,artifacts/{certs,tickets,captures,loot}}`
-3. **Naming convention**: target = hostname or IP (e.g., `projects/eyeflow.ru/`, `projects/10.129.9.51/`).
+2. **Create directories on first use**: `mkdir -p reports/<target>/<agent>/{recon,findings,evidence,logs,artifacts/{certs,tickets,captures,loot}}`
+3. **Naming convention**: target = hostname or IP (e.g., `reports/eyeflow.ru/`, `reports/10.129.9.51/`).
 4. **Orchestrators/HTB agent**: create the full directory tree before spawning sub-agents, pass the output path in the prompt
 5. **Applies to ALL file types**: certificates, keys, tickets, pcaps, wordlists, scripts, hash files, database dumps, downloaded source code, git dumps, screenshots — no exceptions
 
