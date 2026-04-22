@@ -4,7 +4,7 @@ scans/
 outputs/
 
 # Результаты тестирований (данные таргетов)
-reports/*/
+reports/
 
 # Исходники для code review — клонировать вручную
 static/
